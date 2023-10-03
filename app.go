@@ -5,8 +5,6 @@ import (
 	"log"
 	"os"
 	"os/signal"
-	"time"
-
 	"github.com/bwmarrin/discordgo"
 )
 
@@ -43,8 +41,6 @@ func init() {
             command(s,i)
         }
     })
-
-    setTimer(time.Hour * 30)
 }
 
 func main() {
