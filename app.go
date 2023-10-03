@@ -5,12 +5,14 @@ import (
 	"log"
 	"os"
 	"os/signal"
+
 	"github.com/bwmarrin/discordgo"
 )
 
 var (
 	Token string
     RemoveCommands bool
+    CreateConfig bool
     // Define global session
     client *discordgo.Session
 )
@@ -20,6 +22,7 @@ var (
 func init() {
 	flag.StringVar(&Token, "t", "", "Bot token")
     flag.BoolVar(&RemoveCommands, "r", true, "Remove commands after shutdown")
+    flag.BoolVar(&CreateConfig, "c", false, "Create config file, if none found")
 	flag.Parse()
     
     if Token == "" {
@@ -88,6 +91,7 @@ func main() {
             }
         }
     }
+    saveConfig()
     
     log.Println("Shutting down...")
 }
