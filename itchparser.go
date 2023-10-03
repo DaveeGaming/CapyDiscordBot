@@ -38,7 +38,7 @@ func init() {
         jamEntries = []Jam{}
     })
 
-    scraper.OnHTML("div.padded_content", func(h *colly.HTMLElement) {
+    scraper.OnHTML("div.jam", func(h *colly.HTMLElement) {
         currentJam := Jam{}
         currentJam.Name = h.ChildText(".primary_info")
         currentJam.JamLink = "https://itch.io" + h.ChildAttr(".primary_info", "href")
@@ -63,6 +63,6 @@ func StartScraper() {
 func scrapeItch() {
     lastSynced = time.Now()
     log.Println("Scraping website")
-    scraper.Visit("https://itch.io/jams/upcoming")
+    scraper.Visit("https://itch.io/jams/upcoming/sort-date")
     scraping = false
 }
