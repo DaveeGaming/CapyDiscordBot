@@ -4,6 +4,11 @@ import (
 	"github.com/bwmarrin/discordgo"
 )
 
+var (
+    embedColor int = 15485763
+)
+
+
 // Define bot commands
 
 //Typedef commonly used func signature, so the code is pretty :3
@@ -15,7 +20,7 @@ func testCommand(s *discordgo.Session, i *discordgo.InteractionCreate) {
     s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
         Type: discordgo.InteractionResponseChannelMessageWithSource,
         Data: &discordgo.InteractionResponseData{
-            Content: "Oh wow, our first slash command!",
+            Embeds: jamToEmbed(jamEntries[0]),
         },  
     })
 }
@@ -24,7 +29,7 @@ func getStatusEmbed() []*discordgo.MessageEmbed {
     return []*discordgo.MessageEmbed{
         { // Embed body
             Title: "Capy status",
-            Color: 15485763,
+            Color: embedColor,
             Fields: []*discordgo.MessageEmbedField{
                 {
                     Name: "Last sync:",
@@ -48,6 +53,28 @@ func returnStatus(s *discordgo.Session, i *discordgo.InteractionCreate){
             Embeds: getStatusEmbed(),
         },
     })
+}
+
+
+func jamToEmbed(jam Jam) []*discordgo.MessageEmbed {
+    return []*discordgo.MessageEmbed{
+        {
+            Title: jam.Name,
+            Color: embedColor,
+            URL: jam.JamLink,
+            Image: &discordgo.MessageEmbedImage{URL: jam.ImageLink},
+            Fields: []*discordgo.MessageEmbedField{
+                {
+                    Name: "Duration",
+                    Value: jam.Duration,
+                },
+                {
+                    Name: "Starts in",
+                    Value: jam.StartsIn,
+                },
+            },
+        },   
+    }
 }
 
 
