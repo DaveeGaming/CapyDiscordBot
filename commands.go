@@ -20,24 +20,33 @@ func testCommand(s *discordgo.Session, i *discordgo.InteractionCreate) {
     })
 }
 
+func getStatusEmbed() []*discordgo.MessageEmbed {
+    return []*discordgo.MessageEmbed{
+        { // Embed body
+            Title: "Capy status",
+            Color: 15485763,
+            Fields: []*discordgo.MessageEmbedField{
+                {
+                    Name: "Last sync:",
+                    Value: lastSynced.Format("Jan 02, Mon 15:04"),
+                    Inline: true,
+                },
+                {
+                    Name: "Sync time:",
+                    Value: syncTime.String(),
+                    Inline: true,
+                },
+            },
+        }, 
+    }
+}
 func returnStatus(s *discordgo.Session, i *discordgo.InteractionCreate){
     s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
         Type: discordgo.InteractionResponseChannelMessageWithSource,
         Data: &discordgo.InteractionResponseData{
             //Content: "Time since last sync: " + lastSynced.Format("01/02 15:04"),
-            Embeds: []*discordgo.MessageEmbed{
-                {
-                    Title: "does this work?",
-                    Fields: []*discordgo.MessageEmbedField{
-                        {
-                            Name: "Time since last sync:",
-                            Value: lastSynced.Format("Jan 02, Mon 15:04"),
-                            Inline: true,
-                        },
-                    },
-                }, 
-            },
-        },  
+            Embeds: getStatusEmbed(),
+        },
     })
 }
 
