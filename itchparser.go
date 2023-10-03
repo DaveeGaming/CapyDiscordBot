@@ -8,7 +8,8 @@ import (
 )
 
 type Jam struct {
-    ImageLink, JamLink, Name, StartsIn, Duration string
+    Joined, ImageLink, JamLink, Name, Duration string
+    StartsIn time.Duration
 }
 
 var (
@@ -40,11 +41,17 @@ func init() {
 
     scraper.OnHTML("div.jam", func(h *colly.HTMLElement) {
         currentJam := Jam{}
+
+        startTime, err := time.Parse("2006-01-02 15:04:05",h.ChildAttr(".date_countdown", "title"))
+        if err != nil {
+            log.Panicf("Unable to parse jam start time %v", err)
+        }
         currentJam.Name = h.ChildText(".primary_info")
-        currentJam.JamLink = "https://itch.io" + h.ChildAttr(".primary_info", "href")
+        currentJam.JamLink = "https://itch.io" + h.ChildAttr("a", "href")
         currentJam.ImageLink = h.ChildAttr(".jam_cover", "data-background_image")
-        currentJam.StartsIn = h.ChildText(".date_countdown")
+        currentJam.StartsIn = startTime.Sub(time.Now())
         currentJam.Duration = h.ChildText(".date_duration")
+        currentJam.Joined = h.ChildText(".number")
         jamEntries = append(jamEntries, currentJam)
     })
 }

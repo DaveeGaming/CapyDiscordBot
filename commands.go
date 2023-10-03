@@ -1,6 +1,8 @@
 package main
 
 import (
+	"time"
+
 	"github.com/bwmarrin/discordgo"
 )
 
@@ -30,6 +32,7 @@ func getStatusEmbed() []*discordgo.MessageEmbed {
         { // Embed body
             Title: "Capy status",
             Color: embedColor,
+            Footer: &discordgo.MessageEmbedFooter{IconURL: client.State.User.AvatarURL(""),Text: time.Now().Format("Mon at 15:04")},
             Fields: []*discordgo.MessageEmbedField{
                 {
                     Name: "Last sync:",
@@ -63,14 +66,22 @@ func jamToEmbed(jam Jam) []*discordgo.MessageEmbed {
             Color: embedColor,
             URL: jam.JamLink,
             Image: &discordgo.MessageEmbedImage{URL: jam.ImageLink},
+            Footer: &discordgo.MessageEmbedFooter{IconURL: jam.ImageLink,Text: time.Now().Format("Mon at 15:04")},
             Fields: []*discordgo.MessageEmbedField{
                 {
                     Name: "Duration",
                     Value: jam.Duration,
+                    Inline: true,
                 },
                 {
                     Name: "Starts in",
-                    Value: jam.StartsIn,
+                    Value: jam.StartsIn.Round(time.Minute * 5).String(),
+                    Inline: true,
+                },
+                {
+                    Name: "Participants",
+                    Value: jam.Joined,
+                    Inline: true,
                 },
             },
         },   
