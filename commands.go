@@ -1,6 +1,7 @@
 package main
 
 import (
+	"log"
 	"time"
 
 	"github.com/bwmarrin/discordgo"
@@ -22,7 +23,7 @@ func testCommand(s *discordgo.Session, i *discordgo.InteractionCreate) {
     s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
         Type: discordgo.InteractionResponseChannelMessageWithSource,
         Data: &discordgo.InteractionResponseData{
-            Embeds: jamToEmbed(jamEntries[0]),
+            Embeds: jamToEmbed("UOL Game Jam #9"),
         },  
     })
 }
@@ -58,11 +59,17 @@ func returnStatus(s *discordgo.Session, i *discordgo.InteractionCreate){
     })
 }
 
-
-func jamToEmbed(jam Jam) []*discordgo.MessageEmbed {
+func jamToEmbed(jamName string) []*discordgo.MessageEmbed {
+    var jam Jam
+    val, ok := jamEntries[jamName]
+    if ok {
+        jam = *val
+    } else {
+        return []*discordgo.MessageEmbed{{Title: "Jam named " +jamName + " not found."},}
+    }
     return []*discordgo.MessageEmbed{
         {
-            Title: jam.Name,
+            Title: jamName,
             Color: embedColor,
             URL: jam.JamLink,
             Image: &discordgo.MessageEmbedImage{URL: jam.ImageLink},
