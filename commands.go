@@ -19,13 +19,47 @@ var (
 type discordgoCommand func(s *discordgo.Session, i *discordgo.InteractionCreate)
 
 
+func upcomingChannel(s *discordgo.Session, i *discordgo.InteractionCreate) {
+    config.UpcomingChannelID = i.ChannelID;
+    gotChannelID(s,i)
+}
+
+func gotChannelID(s *discordgo.Session, i *discordgo.InteractionCreate) {
+    err := s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
+        Type: discordgo.InteractionResponseChannelMessageWithSource,
+        Data: &discordgo.InteractionResponseData{
+            Content: "Set current channel as the announcement channel",
+        },  
+    })
+    if err != nil {
+        log.Printf("User %v unable to run command, reason: %v", i.Member.User.Username, err)
+    }
+}
+
+
+func sync(s *discordgo.Session, i *discordgo.InteractionCreate) {
+    err := s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
+        Type: discordgo.InteractionResponseChannelMessageWithSource,
+        Data: &discordgo.InteractionResponseData{
+            Content: "Syncing",
+        },  
+    })
+    if err != nil {
+        log.Printf("User %v unable to run command, reason: %v", i.Member.User.Username, err)
+    }
+    scrapeItch()
+}
+
 func testCommand(s *discordgo.Session, i *discordgo.InteractionCreate) {
-    s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
+    err := s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
         Type: discordgo.InteractionResponseChannelMessageWithSource,
         Data: &discordgo.InteractionResponseData{
             Embeds: jamToEmbed("UOL Game Jam #9"),
         },  
     })
+    if err != nil {
+        log.Printf("User %v unable to run command, reason: %v", i.Member.User.Username, err)
+    }
 }
 
 func getStatusEmbed() []*discordgo.MessageEmbed {
@@ -106,11 +140,21 @@ var (
             Name: "status",
             Description: "Returns bot status",
         },
+        {
+            Name: "upcoming",
+            Description: "Sets the current channel to the upcoming jam announcement channel",
+        },
+        {
+            Name: "sync",
+            Description: "yeah",
+        },
     }
 
     command_handlers = map[string]discordgoCommand{
         "test-command": testCommand,
         "status": returnStatus,
+        "upcoming": upcomingChannel,
+        "sync": sync,
     }
 )
 

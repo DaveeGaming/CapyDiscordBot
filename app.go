@@ -37,6 +37,15 @@ func init() {
         log.Fatalf("Unable to create discord session: %v", err)
     }
 
+    client.AddHandler(func(s *discordgo.Session, m *discordgo.MessageCreate){
+        for k,v := range jamEntries {
+            if m.Content == v.JamLink {
+                s.ChannelMessageDelete(m.ChannelID,m.ID)
+                s.ChannelMessageSendEmbeds(m.ChannelID, jamToEmbed(k))
+            }
+        }
+    })
+
     // Add listener, this fires our functions when a command is called
     client.AddHandler(func(s *discordgo.Session, i *discordgo.InteractionCreate){
         if command, found := command_handlers[i.ApplicationCommandData().Name]

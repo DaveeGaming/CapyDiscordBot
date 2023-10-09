@@ -13,6 +13,10 @@ type Duration struct {
 
 type Config struct {
 	SyncTimer Duration 
+    UpcomingChannelID string
+    OngoingChannelID string
+
+    JamsToTrack []string
 }
 
 var config Config
@@ -59,7 +63,10 @@ func init() {
             log.Panicf("Unable to find config file: %v", err)
         }
     }
-	json.Unmarshal(fileContent, &config)
+    err = json.Unmarshal(fileContent, &config)
+    if err != nil {
+        log.Panicf("Unable to load config file: %v", err)
+    }
 }
 
 

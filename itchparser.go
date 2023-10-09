@@ -8,19 +8,21 @@ import (
 )
 
 type Jam struct {
-    Joined, ImageLink, JamLink, Duration string
+    Joined, ImageLink, JamLink, Duration, MessageID, ChannelID string
     StartsIn time.Duration
 }
 
 var (
     syncTicker *time.Ticker
     lastSynced time.Time
-    syncTime time.Duration = time.Second * 10 //temporary
+    syncTime time.Duration = time.Minute * 10 //temporary
 
     scraper *colly.Collector
     scraping bool
 
     jamEntries map[string]*Jam 
+
+    currentJamProgress int = 0
 )
 //TODO: this will come from the config, the duration for the clock reset
 func startTimer(){scraping = true; syncTicker.Reset(syncTime)}
@@ -33,16 +35,17 @@ func init() {
     scraping = true
 
     scraper = colly.NewCollector()
+    scraper.AllowURLRevisit = true
 
     //Reset content of the jameEntries
-    scraper.OnRequest(func(r *colly.Request) {
-        jamEntries = map[string]*Jam{}
-    })
+    jamEntries = map[string]*Jam{}
 
     scraper.OnHTML("div.jam", func(h *colly.HTMLElement) {
         //Check jam list, if we saved it already, just update time, else, create new jam
         jamName := h.ChildText(".primary_info")
-        if val, ok := jamEntries[jamName]; ok {
+        val, ok := jamEntries[jamName]
+        log.Print(ok)
+        if ok {
             startTime, _ := time.Parse("2006-01-02 15:04:05",h.ChildAttr(".date_countdown", "title"))
             val.StartsIn = startTime.Sub(time.Now())
             val.Duration = h.ChildText(".date_duration")
@@ -57,6 +60,26 @@ func init() {
             currentJam.Duration = h.ChildText(".date_duration")
             currentJam.Joined = h.ChildText(".number")
             jamEntries[jamName] = &currentJam
+        }
+        currentJamProgress++;
+    })
+
+    scraper.OnScraped(func(r *colly.Response) {
+        log.Printf("Scraped %v jams", currentJamProgress)
+        currentJamProgress = 0
+        // Time to send all new jams to the upcoming channel
+        for k,jv := range jamEntries {
+            for _,v := range config.JamsToTrack {
+                if k != v { continue }
+                if jv.MessageID == "" {
+                    msg, _ := client.ChannelMessageSendEmbeds(config.UpcomingChannelID, jamToEmbed(k))
+                    jv.MessageID = msg.ID;
+                    jv.ChannelID = msg.ChannelID;
+                } else {
+                    client.ChannelMessageEditEmbeds(jv.ChannelID,jv.MessageID, jamToEmbed(k))
+                }
+                
+            }
         }
     })
 }
@@ -75,6 +98,8 @@ func StartScraper() {
 func scrapeItch() {
     lastSynced = time.Now()
     log.Println("Scraping website")
-    scraper.Visit("https://itch.io/jams/upcoming/sort-date")
-    scraping = false
+    err := scraper.Visit("https://itch.io/jams/upcoming/sort-date")
+    if err != nil {
+        log.Panicf("Couldn't start scraping website %v", err)
+    }
 }
